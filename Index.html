@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#102746">
+  <title>SAMPLEFLOW — Live Scanner</title>
+  <style>
+    :root{color-scheme:dark;--navy:#102746;--blue:#2463eb;--muted:#a8b6ca;--line:#30445f}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:#0b1729;color:#f7f9fc;font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;display:flex;justify-content:center;padding:20px}
+    main{width:min(100%,560px);margin:auto}.brand{display:flex;align-items:center;gap:12px;margin-bottom:22px}.logo{width:44px;height:44px;border-radius:13px;background:#2463eb;display:grid;place-items:center;font-size:22px}.brand b{display:block;font-size:17px;letter-spacing:.06em}.brand span{color:var(--muted);font-size:12px}
+    .card{background:#14243a;border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:0 20px 60px #0004}.eyebrow{font-size:11px;letter-spacing:.16em;color:#8fb4ff;font-weight:800}.title{font-size:26px;margin:6px 0}.desc{color:var(--muted);font-size:14px;margin:0 0 18px}
+    #reader{width:100%;overflow:hidden;border-radius:16px;background:#08111e;min-height:220px}#reader video{object-fit:cover}.status{margin-top:14px;border-radius:12px;padding:12px;background:#1d334f;color:#dbe8ff;font-size:14px}.status.error{background:#4a2027;color:#ffd8dc}.status.ok{background:#123e32;color:#c9ffeb}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;font-size:14px;cursor:pointer}.primary{background:#3977ee;color:white}.secondary{background:#253951;color:#f7f9fc}.manual{display:flex;gap:8px;margin-top:16px}.manual input{min-width:0;flex:1;border:1px solid var(--line);background:#0d1b2e;color:white;border-radius:10px;padding:12px}.hint{color:var(--muted);font-size:12px;margin-top:16px}.hidden{display:none!important}
+  </style>
+</head>
+<body>
+<main>
+  <header class="brand"><div class="logo">⌗</div><div><b>SAMPLEFLOW</b><span>Laboratory Sample Tracking · Live Scanner</span></div></header>
+  <section class="card">
+    <div class="eyebrow">CAMERA SCANNER</div>
+    <h1 class="title">Scan QR Waybill</h1>
+    <p class="desc">Izinkan akses kamera dan arahkan kamera belakang ke QR waybill. Hasil scan akan dikirim kembali ke halaman SAMPLEFLOW yang membukanya.</p>
+    <div id="reader"></div>
+    <div id="status" class="status">Menyiapkan kamera…</div>
+    <div class="actions">
+      <button class="btn primary" id="startBtn">Aktifkan kamera</button>
+      <button class="btn secondary" id="stopBtn">Matikan kamera</button>
+    </div>
+    <form class="manual" id="manualForm">
+      <input id="manualValue" placeholder="Atau masukkan URL / ID waybill" autocomplete="off">
+      <button class="btn secondary" type="submit">Kirim</button>
+    </form>
+    <p class="hint">Halaman ini harus dipublikasikan pada hosting HTTPS, misalnya GitHub Pages. Jika kamera tidak otomatis aktif, tekan “Aktifkan kamera” dan izinkan akses saat diminta.</p>
+  </section>
+</main>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+'use strict';
+const statusEl=document.getElementById('status');
+let scanner=null, busy=false;
+function status(message,type=''){statusEl.className='status'+(type?' '+type:'');statusEl.textContent=message;}
+function sendResult(value){
+  if(busy)return;
+  const clean=String(value||'').trim();
+  if(!clean){status('QR tidak berisi teks yang bisa digunakan.','error');return;}
+  busy=true;status('QR terbaca. Mengirim hasil ke SAMPLEFLOW…','ok');
+  try{
+    if(window.opener&&!window.opener.closed){
+      window.opener.postMessage({type:'SAMPLEFLOW_QR_RESULT',value:clean},'*');
+      setTimeout(()=>window.close(),350);
+      return;
+    }
+    status('Scanner tidak dibuka dari SAMPLEFLOW. Salin hasil ini dan masukkan secara manual: '+clean,'error');
+    document.getElementById('manualValue').value=clean;
+    busy=false;
+  }catch(e){status('Gagal mengirim hasil. '+e.message,'error');busy=false;}
+}
+async function startCamera(){
+  if(scanner)return;
+  if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    status('Browser ini tidak menyediakan akses kamera. Pastikan halaman dibuka melalui HTTPS di browser utama HP.','error');return;
+  }
+  try{
+    scanner=new Html5Qrcode('reader',{verbose:false});
+    const cameras=await Html5Qrcode.getCameras();
+    if(!cameras.length)throw new Error('Kamera tidak ditemukan.');
+    const back=cameras.find(c=>/back|rear|environment|belakang/i.test(c.label))||cameras[cameras.length-1];
+    await scanner.start(back.id,{fps:10,qrbox:(vw,vh)=>{const s=Math.floor(Math.min(vw,vh)*.72);return {width:s,height:s};},aspectRatio:1},decoded=>sendResult(decoded),()=>{});
+    status('Kamera aktif. Arahkan QR waybill ke dalam bingkai.','ok');
+  }catch(e){
+    const msg=e&&e.message?e.message:String(e);
+    status(/denied|permission|notallowed/i.test(msg)?'Izin kamera ditolak. Buka pengaturan situs di browser dan izinkan Camera, lalu coba lagi.':msg,'error');
+    if(scanner){try{await scanner.stop();}catch(_){}try{scanner.clear();}catch(_){}scanner=null;}
+  }
+}
+async function stopCamera(){if(scanner){try{if(scanner.isScanning)await scanner.stop();}catch(_){}try{scanner.clear();}catch(_){}scanner=null;}status('Kamera dimatikan. Tekan “Aktifkan kamera” untuk memulai lagi.');}
+document.getElementById('startBtn').addEventListener('click',startCamera);
+document.getElementById('stopBtn').addEventListener('click',stopCamera);
+document.getElementById('manualForm').addEventListener('submit',e=>{e.preventDefault();sendResult(document.getElementById('manualValue').value);});
+window.addEventListener('pagehide',stopCamera);
+startCamera();
+</script>
+</body>
+</html>
