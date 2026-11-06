@@ -1,230 +1,603 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#102746">
-  <title>SAMPLEFLOW — Live Scanner</title>
+  <meta name="theme-color" content="#091321">
+  <title>SAMPLEFLOW — QR Scanner</title>
 
   <style>
     :root {
       color-scheme: dark;
-      --navy: #102746;
-      --blue: #2463eb;
-      --muted: #a8b6ca;
-      --line: #30445f;
+      --bg: #091321;
+      --surface: #111e30;
+      --surface-2: #17263a;
+      --surface-3: #1d3047;
+      --line: #293b51;
+      --text: #edf4fb;
+      --muted: #8fa2b9;
+      --cyan: #46d7df;
+      --purple: #a78bfa;
+      --lime: #a3e635;
+      --red: #fb7185;
+      --amber: #fbbf24;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
       min-height: 100vh;
-      background: #0b1729;
-      color: #f7f9fc;
-      font: 16px/1.45 system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100dvh;
+      padding: 24px;
       display: flex;
+      align-items: center;
       justify-content: center;
-      padding: 20px;
+      background:
+        radial-gradient(ellipse at 50% -15%, #1b3a52 0%, transparent 48%),
+        radial-gradient(ellipse at 100% 100%, #29224a 0%, transparent 35%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, Manrope, system-ui, -apple-system, sans-serif;
     }
 
-    main {
-      width: min(100%, 560px);
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app {
+      width: min(100%, 500px);
       margin: auto;
     }
 
+    /* BRAND */
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: space-between;
       margin-bottom: 22px;
+      gap: 12px;
     }
 
-    .logo {
-      width: 44px;
-      height: 44px;
+    .brand-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 43px;
+      height: 43px;
       border-radius: 13px;
-      background: var(--blue);
       display: grid;
       place-items: center;
-      font-size: 22px;
+      background: linear-gradient(145deg, #46d7df, #6674c8);
+      color: #071321;
+      font-size: 23px;
+      font-weight: 900;
+      box-shadow: 0 6px 25px #46d7df30;
     }
 
-    .brand b {
-      display: block;
-      font-size: 17px;
-      letter-spacing: .06em;
+    .brand-name {
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: .12em;
     }
 
-    .brand span {
+    .brand-subtitle {
       color: var(--muted);
-      font-size: 12px;
+      font-size: 10px;
+      margin-top: 3px;
+      letter-spacing: .035em;
     }
 
-    .card {
-      background: #14243a;
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border: 1px solid #a3e63535;
+      border-radius: 20px;
+      background: #a3e6350d;
+      color: var(--lime);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      white-space: nowrap;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 10px #a3e635;
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .4; transform: scale(.75); }
+    }
+
+    /* MAIN PANEL */
+    .scanner-panel {
+      position: relative;
+      overflow: hidden;
+      padding: 23px;
       border: 1px solid var(--line);
-      border-radius: 22px;
-      padding: 20px;
-      box-shadow: 0 20px 60px #0004;
+      border-radius: 20px;
+      background: linear-gradient(145deg, #15253a, #101c2e 75%);
+      box-shadow: 0 25px 70px #0005;
+    }
+
+    .scanner-panel::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan), var(--purple), transparent);
     }
 
     .eyebrow {
-      font-size: 11px;
-      letter-spacing: .16em;
-      color: #8fb4ff;
-      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--cyan);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .18em;
     }
 
-    .title {
-      font-size: 26px;
-      margin: 6px 0;
+    .eyebrow-line {
+      width: 17px;
+      height: 2px;
+      background: var(--cyan);
+      border-radius: 2px;
     }
 
-    .desc {
+    h1 {
+      margin: 10px 0 5px;
+      font-size: clamp(25px, 7vw, 32px);
+      line-height: 1.15;
+      letter-spacing: -.045em;
+    }
+
+    h1 span {
+      color: var(--cyan);
+    }
+
+    .description {
+      margin: 0;
+      max-width: 390px;
       color: var(--muted);
-      font-size: 14px;
-      margin: 0 0 18px;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    /* CAMERA */
+    .camera-section {
+      margin-top: 23px;
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .section-heading strong {
+      font-size: 10px;
+      letter-spacing: .1em;
+    }
+
+    .camera-tag {
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: .08em;
+    }
+
+    .camera-frame {
+      position: relative;
+      width: 100%;
+      min-height: 260px;
+      overflow: hidden;
+      padding: 9px;
+      border: 1px solid #354960;
+      border-radius: 15px;
+      background:
+        radial-gradient(circle at center, #172a3d, #07111e 75%);
     }
 
     #reader {
       width: 100%;
+      min-height: 240px;
       overflow: hidden;
-      border-radius: 16px;
-      background: #08111e;
-      min-height: 220px;
+      border-radius: 10px;
     }
 
     #reader video {
+      width: 100% !important;
+      height: auto !important;
+      max-height: 390px;
       object-fit: cover;
+      border-radius: 10px;
     }
 
+    #reader img {
+      max-width: 100%;
+    }
+
+    #reader__scan_region {
+      min-height: 220px;
+    }
+
+    #reader__dashboard {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    #reader__dashboard button,
+    #reader__dashboard select {
+      margin: 5px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface-3);
+      color: var(--text);
+    }
+
+    .camera-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      pointer-events: none;
+      color: #7890a9;
+    }
+
+    .camera-placeholder .camera-icon {
+      width: 55px;
+      height: 55px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #46d7df35;
+      border-radius: 17px;
+      background: #46d7df0c;
+      color: var(--cyan);
+      font-size: 25px;
+    }
+
+    .camera-placeholder span {
+      font-size: 10px;
+      letter-spacing: .1em;
+      font-weight: 800;
+    }
+
+    /* STATUS */
     .status {
-      margin-top: 14px;
-      border-radius: 12px;
-      padding: 12px;
-      background: #1d334f;
-      color: #dbe8ff;
-      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-top: 13px;
+      padding: 12px 13px;
+      border: 1px solid #46d7df25;
+      border-radius: 11px;
+      background: #46d7df0b;
+      color: #c5e9ed;
+      font-size: 11px;
+      line-height: 1.6;
       overflow-wrap: anywhere;
     }
 
+    .status-icon {
+      flex-shrink: 0;
+      width: 19px;
+      height: 19px;
+      display: grid;
+      place-items: center;
+      border-radius: 6px;
+      background: #46d7df20;
+      color: var(--cyan);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
     .status.error {
-      background: #4a2027;
-      color: #ffd8dc;
+      border-color: #fb718535;
+      background: #fb71850d;
+      color: #ffc4cd;
+    }
+
+    .status.error .status-icon {
+      background: #fb718520;
+      color: var(--red);
     }
 
     .status.ok {
-      background: #123e32;
-      color: #c9ffeb;
+      border-color: #a3e63535;
+      background: #a3e6350d;
+      color: #d9f6ad;
     }
 
+    .status.ok .status-icon {
+      background: #a3e63520;
+      color: var(--lime);
+    }
+
+    /* ACTIONS */
     .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
       margin-top: 14px;
     }
 
     .btn {
-      border: 0;
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-weight: 700;
-      font-size: 14px;
+      min-height: 43px;
+      padding: 11px 13px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 800;
       cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .btn:active {
+      transform: scale(.97);
     }
 
     .btn:disabled {
-      opacity: .55;
-      cursor: wait;
+      opacity: .45;
+      cursor: not-allowed;
     }
 
-    .primary {
-      background: #3977ee;
-      color: white;
+    .btn-primary {
+      background: linear-gradient(110deg, #46d7df, #64cbd9);
+      color: #071321;
+      box-shadow: 0 5px 20px #46d7df22;
     }
 
-    .secondary {
-      background: #253951;
-      color: #f7f9fc;
+    .btn-primary:hover:not(:disabled) {
+      box-shadow: 0 7px 25px #46d7df45;
+      transform: translateY(-1px);
     }
 
-    .manual {
+    .btn-secondary {
+      border-color: var(--line);
+      background: var(--surface-3);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      border-color: #46d7df70;
+      background: #223b51;
+    }
+
+    /* MANUAL INPUT */
+    .divider-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 21px 0 12px;
+      color: #73869c;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: .13em;
+    }
+
+    .divider-label::before,
+    .divider-label::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .manual-form {
       display: flex;
       gap: 8px;
-      margin-top: 16px;
     }
 
-    .manual input {
+    .manual-form input {
       min-width: 0;
       flex: 1;
+      height: 43px;
+      padding: 0 12px;
+      outline: none;
       border: 1px solid var(--line);
-      background: #0d1b2e;
-      color: white;
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 14px;
+      border-radius: 9px;
+      background: #0b1727;
+      color: var(--text);
+      font-size: 11px;
+      transition: .2s;
+    }
+
+    .manual-form input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px #46d7df13;
+    }
+
+    .manual-form input::placeholder {
+      color: #687d94;
+    }
+
+    .manual-form button {
+      min-width: 76px;
+    }
+
+    /* FOOTER */
+    .scanner-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid var(--line);
+      color: #71849a;
+      font-size: 9px;
+    }
+
+    .footer-brand {
+      color: #a9bbcf;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .footer-version {
+      color: #647b93;
     }
 
     .hint {
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 16px;
+      margin: 13px 0 0;
+      color: #75899f;
+      font-size: 10px;
+      line-height: 1.7;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 15px;
+        align-items: flex-start;
+      }
+
+      .app {
+        margin: auto 0;
+      }
+
+      .scanner-panel {
+        padding: 18px;
+        border-radius: 17px;
+      }
+
+      .camera-frame {
+        min-height: 235px;
+      }
+
+      #reader {
+        min-height: 215px;
+      }
+
+      .brand {
+        margin-bottom: 17px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+      }
     }
   </style>
 </head>
 
 <body>
-<main>
+<main class="app">
+
   <header class="brand">
-    <div class="logo">⌗</div>
-    <div>
-      <b>SAMPLEFLOW</b>
-      <span>Laboratory Sample Tracking · Live Scanner</span>
+    <div class="brand-main">
+      <div class="brand-logo">⌗</div>
+      <div>
+        <div class="brand-name">SAMPLEFLOW</div>
+        <div class="brand-subtitle">LABORATORY WORKFLOW SYSTEM</div>
+      </div>
+    </div>
+
+    <div class="live-indicator">
+      <span class="live-dot"></span>
+      LIVE SCANNER
     </div>
   </header>
 
-  <section class="card">
-    <div class="eyebrow">CAMERA SCANNER</div>
-    <h1 class="title">Scan QR Waybill</h1>
+  <section class="scanner-panel">
 
-    <p class="desc">
-      Arahkan kamera belakang ke QR waybill.
-      Hasil scan dikirim ke halaman SAMPLEFLOW yang membuka scanner ini.
+    <div class="eyebrow">
+      <span class="eyebrow-line"></span>
+      WAYBILL IDENTIFICATION
+    </div>
+
+    <h1>Scan QR <span>Waybill.</span></h1>
+
+    <p class="description">
+      Arahkan kamera belakang ke QR Waybill untuk membuka
+      identitas dan proses sampel pada aplikasi SAMPLEFLOW.
     </p>
 
-    <div id="reader"></div>
+    <div class="camera-section">
+
+      <div class="section-heading">
+        <strong>CAMERA SCANNER</strong>
+        <span class="camera-tag">QR DETECTION · AUTO</span>
+      </div>
+
+      <div class="camera-frame">
+        <div id="reader"></div>
+
+        <div class="camera-placeholder" id="cameraPlaceholder">
+          <div class="camera-icon">⌗</div>
+          <span>CAMERA NOT ACTIVE</span>
+        </div>
+      </div>
+
+    </div>
 
     <div id="status" class="status">
-      Scanner siap. Tekan Aktifkan kamera jika kamera belum menyala.
+      <span class="status-icon">i</span>
+      <span class="status-message">
+        Scanner siap. Tekan Aktifkan Kamera untuk memulai.
+      </span>
     </div>
 
     <div class="actions">
-      <button class="btn primary" id="startBtn" type="button">
-        Aktifkan kamera
+      <button class="btn btn-primary" id="startBtn" type="button">
+        Aktifkan Kamera
       </button>
 
-      <button class="btn secondary" id="stopBtn" type="button">
-        Matikan kamera
+      <button class="btn btn-secondary" id="stopBtn" type="button" disabled>
+        Matikan Kamera
       </button>
     </div>
 
-    <form class="manual" id="manualForm">
+    <div class="divider-label">MANUAL WAYBILL INPUT</div>
+
+    <form class="manual-form" id="manualForm">
       <input
         id="manualValue"
-        placeholder="Masukkan URL atau ID waybill"
+        type="text"
+        placeholder="Masukkan Waybill ID..."
         autocomplete="off"
       >
-      <button class="btn secondary" type="submit">Kirim</button>
+      <button class="btn btn-secondary" type="submit">
+        KIRIM →
+      </button>
     </form>
 
     <p class="hint">
-      Buka scanner melalui tombol Scan di SAMPLEFLOW agar hasil dapat
-      dikirim kembali secara otomatis. Kamera membutuhkan HTTPS dan izin
-      akses kamera dari browser.
+      Pastikan scanner dibuka melalui tombol Scan di aplikasi SAMPLEFLOW
+      agar hasil pemindaian dapat dikirim kembali secara otomatis.
+      Kamera membutuhkan HTTPS dan izin akses browser.
     </p>
+
+    <footer class="scanner-footer">
+      <span class="footer-brand">SAMPLEFLOW</span>
+      <span>Laboratory Sample Tracking</span>
+      <span class="footer-version">SCANNER · 1.1</span>
+    </footer>
+
   </section>
 </main>
 
@@ -237,6 +610,7 @@ const statusEl = document.getElementById('status');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const manualValue = document.getElementById('manualValue');
+const cameraPlaceholder = document.getElementById('cameraPlaceholder');
 
 let scanner = null;
 let busy = false;
@@ -244,7 +618,15 @@ let starting = false;
 
 function setStatus(message, type = '') {
   statusEl.className = 'status' + (type ? ' ' + type : '');
-  statusEl.textContent = message;
+
+  const icon = type === 'error' ? '!' : type === 'ok' ? '✓' : 'i';
+
+  statusEl.innerHTML = `
+    <span class="status-icon">${icon}</span>
+    <span class="status-message"></span>
+  `;
+
+  statusEl.querySelector('.status-message').textContent = message;
 }
 
 function cleanPayload(value) {
@@ -252,8 +634,9 @@ function cleanPayload(value) {
 }
 
 /**
- * Pesan sengaja menggunakan properti "value",
- * karena JS.html SAMPLEFLOW membaca data.value.
+ * Integrasi dengan SAMPLEFLOW.
+ * Pertahankan nama event dan properti value agar
+ * kompatibel dengan listener pada halaman utama.
  */
 function sendResult(value) {
   if (busy) return;
@@ -267,9 +650,10 @@ function sendResult(value) {
 
   if (!window.opener || window.opener.closed) {
     manualValue.value = clean;
+
     setStatus(
-      'Hasil QR terbaca, tetapi halaman SAMPLEFLOW tidak terhubung. ' +
-      'Buka scanner dari tombol Scan di aplikasi SAMPLEFLOW.',
+      'QR terbaca, tetapi halaman SAMPLEFLOW tidak terhubung. ' +
+      'Silakan buka scanner melalui tombol Scan di aplikasi.',
       'error'
     );
     return;
@@ -277,7 +661,8 @@ function sendResult(value) {
 
   busy = true;
   manualValue.value = clean;
-  setStatus('QR terbaca. Mengirim hasil ke SAMPLEFLOW...', 'ok');
+
+  setStatus('QR berhasil dibaca. Mengirim hasil ke SAMPLEFLOW...', 'ok');
 
   try {
     window.opener.postMessage(
@@ -288,13 +673,10 @@ function sendResult(value) {
       '*'
     );
 
-    // Jangan memaksa tutup terlalu cepat; halaman utama perlu menerima pesan.
     setTimeout(() => {
       try {
         window.close();
-      } catch (e) {
-        // Jika browser menolak menutup tab, pengguna dapat kembali manual.
-      }
+      } catch (e) {}
     }, 700);
 
   } catch (err) {
@@ -304,14 +686,15 @@ function sendResult(value) {
 }
 
 async function startCamera() {
-  if (scanner || starting) return;
+  if (scanner || starting || busy) return;
 
-  if (!window.isSecureContext ||
-      !navigator.mediaDevices ||
-      !navigator.mediaDevices.getUserMedia) {
+  if (
+    !window.isSecureContext ||
+    !navigator.mediaDevices ||
+    !navigator.mediaDevices.getUserMedia
+  ) {
     setStatus(
-      'Akses kamera tidak tersedia. Pastikan scanner dibuka melalui HTTPS ' +
-      'di browser utama.',
+      'Akses kamera tidak tersedia. Pastikan halaman dibuka melalui HTTPS.',
       'error'
     );
     return;
@@ -327,7 +710,7 @@ async function startCamera() {
 
   starting = true;
   startBtn.disabled = true;
-  setStatus('Meminta akses kamera...', '');
+  setStatus('Meminta izin akses kamera...', '');
 
   try {
     scanner = new Html5Qrcode('reader', { verbose: false });
@@ -357,13 +740,16 @@ async function startCamera() {
       decodedText => {
         sendResult(decodedText);
       },
-      () => {
-        // Frame yang belum menemukan QR tidak perlu ditampilkan sebagai error.
-      }
+      () => {}
     );
 
+    cameraPlaceholder.style.display = 'none';
+
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+
     setStatus(
-      'Kamera aktif. Arahkan QR waybill ke dalam bingkai.',
+      'Kamera aktif. Arahkan QR Waybill ke dalam bingkai pemindaian.',
       'ok'
     );
 
@@ -374,7 +760,7 @@ async function startCamera() {
 
     if (/denied|permission|notallowed/i.test(message)) {
       setStatus(
-        'Izin kamera ditolak. Izinkan Camera pada pengaturan browser, lalu coba lagi.',
+        'Izin kamera ditolak. Izinkan akses Camera pada browser lalu coba lagi.',
         'error'
       );
     } else {
@@ -416,7 +802,10 @@ async function stopCamera() {
 
   starting = false;
   startBtn.disabled = false;
-  setStatus('Kamera dimatikan. Tekan Aktifkan kamera untuk memulai lagi.');
+  stopBtn.disabled = true;
+  cameraPlaceholder.style.display = 'flex';
+
+  setStatus('Kamera dimatikan. Tekan Aktifkan Kamera untuk memulai lagi.');
 }
 
 startBtn.addEventListener('click', startCamera);
@@ -435,8 +824,9 @@ window.addEventListener('pagehide', () => {
   }
 });
 
-// Tidak memaksa kamera aktif saat halaman dibuka.
-// Pada sebagian browser, akses kamera harus dimulai dari klik pengguna.
+// Kamera tidak otomatis aktif saat halaman dibuka.
+// Pengguna harus memberikan izin melalui interaksi tombol.
 </script>
+
 </body>
 </html>
